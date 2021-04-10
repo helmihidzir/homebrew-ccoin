@@ -1,0 +1,51 @@
+#!/usr/bin/env ruby
+
+require 'optparse'
+require 'net/http'
+require 'uri'
+require 'json'
+require 'rack'
+
+options = {}
+
+begin
+    parser = OptionParser.new do |parser|
+        parser.on("-s", "--status", "Check API status")
+        parser.on("-p", "--price ID_VALUE", "Get current data of coin")
+
+        parser.on("-h", "--help", "Prints this help") do
+            puts parser
+            exit
+        end
+    end
+rescue OptionParser::ParseError
+    puts "ERROR: Missing argument for the command"
+end
+
+parser.parse!(into: options)
+
+base_url = "https://api.coingecko.com/api/v3"
+
+options.keys.each do |key|
+    base_url += "/ping" if key == :status
+
+    if key == :price
+        base_url += "/coins"
+        base_url += "/#{options[:price]}"
+    end
+end
+
+uri = URI(base_url)
+#puts uri.to_s
+
+#query = {
+#  'coins' => options[:'coins']
+#}.delete_if { |key, value| value.nil? }
+#uri.query = Rack::Utils.build_query(query) unless query.empty?
+
+response = Net::HTTP.get_response(uri).body
+parsed_response = JSON.load(response)
+
+puts "#{options[:price]} price is USD #{parsed_response["market_data"]["current_price"]["usd"]}" if options.has_key?(:price)
+
+puts "OK" if options.has_key?(:status)
