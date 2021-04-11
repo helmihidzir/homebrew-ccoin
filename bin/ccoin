@@ -46,6 +46,11 @@ uri = URI(base_url)
 response = Net::HTTP.get_response(uri).body
 parsed_response = JSON.load(response)
 
-puts "#{options[:price]} price is USD #{parsed_response["market_data"]["current_price"]["usd"]}" if options.has_key?(:price)
+price_change_percentage_1h_in_currency = parsed_response["market_data"]["price_change_percentage_1h_in_currency"]["usd"]
+current_price = parsed_response["market_data"]["current_price"]["usd"]
+price_change_1h_in_currency = current_price * price_change_percentage_1h_in_currency / 100
+price_1h_in_currency = "%.2f" % (current_price + price_change_1h_in_currency)
+
+puts "#{options[:price]} price\n--------------\n1 hour ago: USD ~#{price_1h_in_currency} \ncurrent price: USD #{current_price}" if options.has_key?(:price)
 
 puts "OK" if options.has_key?(:status)
